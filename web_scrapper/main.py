@@ -1,11 +1,12 @@
-from fastapi import FastAPI, File, UploadFile, Form, Request, Response
+from fastapi import FastAPI, File, UploadFile, Form, Request, Response, Depends
 from fastapi.responses import JSONResponse
 from google import generativeai as genai
 from PIL import Image
 import io, os
 from dotenv import load_dotenv
 
-
+from .schema import TextModelRequest
+from .dependencies import get_url_content
 
 "middleware"
 import csv
@@ -20,7 +21,9 @@ load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # ✅ Use a current multimodal model
-model = genai.GenerativeModel("gemini-1.5-flash")
+# model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-2.5-flash")
+
 
 app = FastAPI()
 
@@ -39,12 +42,15 @@ async def analyze_image(
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
     
-@app.post("generate/text")
+@app.post("/generate/text")
 async def serve_text_to_text_controller(
     request : Request,
-    body : str,
-    url_content: str = Depe
-)
+    body : TextModelRequest,
+    url_content: str = Depends(get_url_content)
+):
+    prompt = body.prompt + "" + url_content
+    output =model.generate_content(prompt)
+    return output
 
 
 csv_header = ["Request ID", "Datetime", "Endpoint Triggered", "Client IP Address",
