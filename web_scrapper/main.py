@@ -4,6 +4,7 @@ from google import generativeai as genai
 from PIL import Image
 import io, os
 from dotenv import load_dotenv
+from loguru import logger
 
 from .schema import TextModelRequest
 from .dependencies import get_url_content
@@ -48,9 +49,16 @@ async def serve_text_to_text_controller(
     body : TextModelRequest,
     url_content: str = Depends(get_url_content)
 ):
-    prompt = body.prompt + "" + url_content
-    output =model.generate_content(prompt)
-    return output
+    
+    prompt = f"{body.prompt}\n\n{url_content}"
+
+    logger.info("Prompt instruction: {}", body.prompt)
+    logger.info("url_content length: {}", len(url_content))
+    logger.info("Prompt preview (first 500 chars):\n{}", prompt[:500])
+
+    output = model.generate_content(prompt)
+    text_output = output.candidates[0].content.parts[0].text
+    return {"result" : text_output}
 
 
 csv_header = ["Request ID", "Datetime", "Endpoint Triggered", "Client IP Address",
