@@ -1,14 +1,15 @@
-from transformers import Automodel
+from sentence_transformers import SentenceTransformer
 import re
 import aiofiles
 
-embedder = Automodel.from_pretrained("jinaai/jina-embediings-v2-base-en", trust_remote_code=True)
+embedder = SentenceTransformer("jinaai/jina-embeddings-v2-base-en")
 
 DEFAULT_CHUNK_SIZE = 1024 * 1024 * 50
-async def load(file_path: str):
+async def load(file_path: str, chunk_size: int):
     async with aiofiles.open(file_path, "r", encoding="utf-8") as f:
-        if chunk := await f.read(DEFAULT_CHUNK_SIZE):
+        while chunk := await f.read(chunk_size):
             yield chunk
+
 def clean(text: str) -> str:
     t = text.replace("\n", " ")
     t = re.sub(r"\s+", " ", t)
