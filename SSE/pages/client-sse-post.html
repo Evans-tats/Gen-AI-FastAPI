@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SSE with POST Request</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #111;
+      color: #eee;
+      padding: 20px;
+    }
+    #container {
+      margin-top: 15px;
+      padding: 10px;
+      background: #222;
+      border-radius: 6px;
+      min-height: 100px;
+      white-space: pre-wrap;
+    }
+    input, button {
+      padding: 8px;
+      margin-right: 8px;
+      border-radius: 4px;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <button id="streambtn">Start Streaming</button>
+  <label for="messageInput">Enter your prompt:</label>
+  <input type="text" id="messageInput" placeholder="Enter message">
+  <div id="container"></div>
+
+  <script>
+    const button = document.getElementById('streambtn');
+    const container = document.getElementById('container');
+    const input = document.getElementById('messageInput');
+
+    function resetForm() {
+      container.textContent = '';
+    }
+
+    async function stream(message) {
+      try {
+        const response = await fetch('http://localhost:8000/generate/text/stream', {
+          method: "POST",
+          keepalive: true,
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "text/event-stream",
+          },
+          body: JSON.stringify({ prompt: message }),
+        });
+
+        if (!response.ok) {
+          container.textContent = "Server error: " + response.status;
+          return;
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          container.textContent += chunk;
+        }
+
+      } catch (err) {
+        container.textContent = "Connection failed: " + err.message;
+      }
+    }
+
+    button.addEventListener('click', async () => {
+      resetForm();
+      const message = input.value.trim();
+      if (!message) {
+        container.textContent = "Please enter a message first.";
+        return;
+      }
+      await stream(message);
+    });
+  </script>
+</body>
+</html>

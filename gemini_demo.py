@@ -12,8 +12,12 @@ os.environ["GRPC_VERBOSITY"] = "ERROR"
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # Choose a model
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 # Generate a response
-response = model.generate_content("Write a haiku about FastAPI and AI.")
+response = model.generate_content("Tell me a story.", stream=True)
+
+for chunk in response:
+    print(chunk.text, end="", flush=True)
+
 print(response.text)

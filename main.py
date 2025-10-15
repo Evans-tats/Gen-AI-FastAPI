@@ -1,10 +1,11 @@
 from fastapi import FastAPI, File, UploadFile, Form, Request, Response
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from google import generativeai as genai
 from PIL import Image
 import io, os
 from dotenv import load_dotenv
 
+from SSE.stream import GeminiChatStream
 
 
 "middleware"
@@ -39,12 +40,20 @@ async def analyze_image(
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
     
-@app.post("generate/text")
-async def serve_text_to_text_controller(
-    request : Request,
-    body : str,
-    url_content: str = Depe
-)
+# @app.post("generate/text")
+# async def serve_text_to_text_controller(
+#     request : Request,
+#     body : str,
+#     url_content: str = Depends
+# )
+@app.get("/generate/text/stream")
+async def serve_text_to_text_stream_controller(
+    prompt : str
+):
+    return StreamingResponse(
+        GeminiChatStream().chat_stream(prompt),media_type="text/event-stream"
+    )
+
 
 
 csv_header = ["Request ID", "Datetime", "Endpoint Triggered", "Client IP Address",
