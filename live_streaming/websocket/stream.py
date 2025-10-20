@@ -1,4 +1,12 @@
 from fastapi.websockets import WebSocket
+import asyncio
+from typing import AsyncGenerator
+from google import generativeai as genai
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 class WebSocketConnectionManager:
     def __init__(self):
@@ -16,7 +24,7 @@ class WebSocketConnectionManager:
 
     @staticmethod
     async def receive(websocket: WebSocket) -> str:
-        data = await WebSocket.receive_text()
+        data = await websocket.receive_text()
         return data
     
     @staticmethod
@@ -31,4 +39,25 @@ class WebSocketConnectionManager:
             raise ValueError("Message must be str, bytes, or dict")
 
 ws_manager = WebSocketConnectionManager()
+
+class WebSocketStream:
+    def __init__(self):
+        self.model = genai.GenerativeModel("gemini-2.5-flash")
+
+    async def chat_stream(
+            self, prompt: str, mode: str = "sse"
+    ) -> AsyncGenerator[str, None]:
+        def sync_stream():
+            return self.model.generate_content(prompt, stream=True)
+        
+        response = await asyncio.to_thread(sync_stream)
+        for chunk in response:
+            yield (
+                f"data: {chunk.text}\n\n"
+                if mode == "sse"
+                else chunk.text
+            )
+            await asyncio.sleep(0.05)
+        if mode == "sse":
+            yield f"data: [DONE]\n\n"
         
