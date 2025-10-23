@@ -17,11 +17,12 @@ sessionLocal = async_sessionmaker(
 
 async def get_db_session():
     try:
-        async with sessionLocal as session:
+        async with sessionLocal() as session:
             yield session
     except:
         await session.rollback()
+        raise
     finally:
         await session.close()
 
-DBSession = Annotated[AsyncSession, Depends(get_db_session)]
+DBSessionDep = Annotated[AsyncSession, Depends(get_db_session)]

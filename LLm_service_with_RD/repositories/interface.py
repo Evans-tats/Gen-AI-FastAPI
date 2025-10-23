@@ -12,4 +12,7 @@ class BaseRepository(ABC):
 
     async def create(self, record : Any) -> Any:
         pass
-    
+    async def update(self, uid: Any, record: Any) -> Any:
+        ...
+    async def delete(self, uid : int) -> Any:
+        pass
