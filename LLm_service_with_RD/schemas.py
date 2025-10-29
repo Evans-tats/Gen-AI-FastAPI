@@ -16,3 +16,7 @@ class ConversationOut(ConversationBase):
     id : int
     created_at : datetime
     updated_at : datetime
+
+class ConversationId(BaseModel):
+    id: int
+    model_config = ConfigDict(from_attributes=True)

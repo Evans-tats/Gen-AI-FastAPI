@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, FastAPI, HTTPException, status
 from repositories.conversation import ConversationRepository
 from database_connection import DBSessionDep
 from DB_Model import Conversation
-from schemas import ConversationOut, ConversationCreate
+from schemas import ConversationOut, ConversationCreate, ConversationId
 
 router = APIRouter(prefix="/conversation")
 
@@ -16,6 +16,7 @@ async def get_conversation(conversation_id : int, session : DBSessionDep) -> Con
             detail="conversation not found"
         )
     return conversation
+    return ConversationOut.model_validate(conversation)
 
 GetConversationDep = Annotated[Conversation, Depends(get_conversation)]
 
@@ -37,6 +38,6 @@ async def update_conversation_controller(updated_conversation: ConversationCreat
     return ConversationOut.model_validate(updated_conversation)
 
 @router.delete("/{id}")
-async def delete_conversation_controller(conversation:GetConversationDep, session:DBSessionDep):
+async def delete_conversation_controller(conversation: GetConversationDep, session:DBSessionDep):
     await ConversationRepository(session).delete(conversation.id)
 
