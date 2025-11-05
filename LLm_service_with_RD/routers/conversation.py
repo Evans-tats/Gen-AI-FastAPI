@@ -3,8 +3,9 @@ from fastapi import APIRouter, Depends, FastAPI, HTTPException, status
 
 from repositories.conversation import ConversationRepository
 from database_connection import DBSessionDep
-from DB_Model import Conversation
+from DB_Model import Conversation, Message
 from schemas import ConversationOut, ConversationCreate, ConversationId
+from services.conversation import ConversationaService
 
 router = APIRouter(prefix="/conversation")
 
@@ -41,3 +42,7 @@ async def update_conversation_controller(updated_conversation: ConversationCreat
 async def delete_conversation_controller(conversation: GetConversationDep, session:DBSessionDep):
     await ConversationRepository(session).delete(conversation.id)
 
+@router.get("/{conversation_id}/messages")
+async def list_conversation_messages_controller(conversation_id: int, session : DBSessionDep):
+    messages_Out = ConversationaService(session).list_messages(conversation_id)
+    return [m for m in messages_Out]
