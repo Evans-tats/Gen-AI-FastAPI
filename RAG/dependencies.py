@@ -16,3 +16,15 @@ async def get_rag_content(body : RAGContentRequest = Body(...)):
     )
     logger.info(f"Extracted RAG content string:\n{rag_content_str}")
     return rag_content_str
+
+
+
+
+
+
+
+
+
+
+
+
